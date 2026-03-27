@@ -16,13 +16,23 @@ type ResumeCreateBody = {
 
 export function resumeRoutes (deps: ResumeRoutesDeps): FastifyPluginAsync {
   return async (fastify) => {
-    fastify.get('/resumes/user/:userId', async (req, reply) => {
-      const { userId } = req.params as { userId: string }
+    fastify.get('/resumes/me', async (req, reply) => {
+      const userId = req.authUserId
+      if (!userId) {
+        reply.code(401)
+        return { message: 'Unauthorized' }
+      }
+
       return deps.listResumesByUserId.execute(userId)
     })
 
-    fastify.post('/resumes/user/:userId', async (req, reply) => {
-      const { userId } = req.params as { userId: string }
+    fastify.post('/resumes/me', async (req, reply) => {
+      const userId = req.authUserId
+      if (!userId) {
+        reply.code(401)
+        return { message: 'Unauthorized' }
+      }
+
       const body = req.body as ResumeCreateBody
 
       // Mock: no validamos parsed_json; lo dejamos como lo mandó el cliente.
@@ -44,6 +54,11 @@ export function resumeRoutes (deps: ResumeRoutesDeps): FastifyPluginAsync {
       if (!resume) {
         reply.code(404)
         return { message: 'Resume not found' }
+      }
+
+      if (resume.user_id !== req.authUserId) {
+        reply.code(403)
+        return { message: 'Forbidden' }
       }
 
       return resume
