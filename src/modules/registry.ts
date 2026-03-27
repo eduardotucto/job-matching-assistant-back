@@ -1,8 +1,9 @@
 import type { AppModule } from './moduleContract'
 import { buildAuthModule } from './auth/authModule.ts'
-import { buildUserModule } from './user/userModule.ts'
+import { buildUserModuleAndServices } from './user/userModule.ts'
 import { buildResumeModule } from './resume/resumeModule.ts'
 
 export function getAppModules (): AppModule[] {
-  return [buildAuthModule(), buildUserModule(), buildResumeModule()]
+  const user = buildUserModuleAndServices()
+  return [buildAuthModule(user.authServices), user.module, buildResumeModule()]
 }

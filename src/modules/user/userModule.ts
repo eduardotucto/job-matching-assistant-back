@@ -1,17 +1,28 @@
 import type { AppModule } from '../moduleContract.ts'
-import { FakeUserMongoRepository } from './infrastructure/mongodb/FakeUserMongoRepository.ts'
+import { CreateUserUseCase } from './application/CreateUserUseCase.ts'
 import { GetUserByIdUseCase } from '@user/application/GetUserByIdUseCase.ts'
+import { GetUserByEmailForAuthUseCase } from './application/GetUserByEmailForAuthUseCase.ts'
 import { userRoutes } from './infrastructure/http/userRoutes.ts'
+import { UserRepositoryMongo } from './infrastructure/repositories/UserRepositoryMongo.ts'
 
-export function buildUserModule (): AppModule {
+export type UserAuthServices = {
+  createUser: CreateUserUseCase;
+  getUserByEmailForAuth: GetUserByEmailForAuthUseCase;
+}
+
+export function buildUserModuleAndServices (): { module: AppModule; authServices: UserAuthServices } {
+  const repo = new UserRepositoryMongo()
+  const getUserById = new GetUserByIdUseCase(repo)
+  const createUser = new CreateUserUseCase(repo)
+  const getUserByEmailForAuth = new GetUserByEmailForAuthUseCase(repo)
+
   return {
-    name: 'user',
-    async register (app) {
-      const repo = new FakeUserMongoRepository()
-
-      const getUserById = new GetUserByIdUseCase(repo)
-
-      app.register(userRoutes({ getUserById }))
-    },
+    authServices: { createUser, getUserByEmailForAuth },
+    module: {
+      name: 'user',
+      async register (app) {
+        app.register(userRoutes({ getUserById }))
+      }
+    }
   }
 }
