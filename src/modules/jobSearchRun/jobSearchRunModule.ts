@@ -1,11 +1,13 @@
 import type { AppModule } from '../moduleContract.ts'
 import { JobSearchRunRepositoryMongo } from './infrastructure/repositories/JobSearchRunRepositoryMongo.ts'
-import { ListJobSearchRunsByUserIdUseCase } from './application/ListJobSearchRunsByUserIdUseCase.ts'
-import { GetJobSearchRunByIdUseCase } from './application/GetJobSearchRunByIdUseCase.ts'
-import { CreateJobSearchRunUseCase } from './application/CreateJobSearchRunUseCase.ts'
-import { UpdateJobSearchRunUseCase } from './application/UpdateJobSearchRunUseCase.ts'
-import { DeleteJobSearchRunUseCase } from './application/DeleteJobSearchRunUseCase.ts'
 import { jobSearchRunRoutes } from './infrastructure/http/jobSearchRunRoutes.ts'
+import {
+  ListJobSearchRunsByUserIdUseCase,
+  GetJobSearchRunByIdUseCase,
+  CreateJobSearchRunUseCase,
+  UpdateJobSearchRunUseCase,
+  DeleteJobSearchRunUseCase
+} from '@jobSearchRun/application'
 
 export function buildJobSearchRunModule (): AppModule {
   return {
