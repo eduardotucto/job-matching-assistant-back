@@ -21,6 +21,7 @@
       "@/*": ["src/*"],
       "@user/*": ["src/modules/user/*"],
       "@resume/*": ["src/modules/resume/*"],
+      "@jobSearchRun/*": ["src/modules/jobSearchRun/*"]
     },
 
     // Best practices
