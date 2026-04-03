@@ -1,7 +1,9 @@
 import type { AppModule } from '../moduleContract.ts'
-import { CreateUserUseCase } from './application/CreateUserUseCase.ts'
-import { GetUserByIdUseCase } from '@user/application/GetUserByIdUseCase.ts'
-import { GetUserByEmailForAuthUseCase } from './application/GetUserByEmailForAuthUseCase.ts'
+import {
+  CreateUserUseCase,
+  GetUserByIdUseCase,
+  GetUserByEmailForAuthUseCase
+} from '@user/application/UserServices.ts'
 import { userRoutes } from './infrastructure/http/userRoutes.ts'
 import { UserRepositoryMongo } from './infrastructure/repositories/UserRepositoryMongo.ts'
 

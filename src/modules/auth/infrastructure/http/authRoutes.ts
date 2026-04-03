@@ -25,7 +25,7 @@ export function authRoutes (services: UserAuthServices): FastifyPluginAsync {
         return { message: 'email and password are required' }
       }
 
-      const user = await services.getUserByEmailForAuth.execute(body.email)
+      const user = await services.getUserByEmailForAuth.execute(body.email.trim().toLowerCase())
       if (!user) {
         reply.code(401)
         return { message: 'Invalid credentials' }
@@ -37,12 +37,12 @@ export function authRoutes (services: UserAuthServices): FastifyPluginAsync {
         return { message: 'Invalid credentials' }
       }
 
-      const token = createToken(user.id)
+      const token = createToken(user._id.toString())
       return {
         access_token: token,
         token_type: 'Bearer',
         user: {
-          id: user.id,
+          id: user._id.toString(),
           name: user.name,
           email: user.email,
         },
@@ -52,9 +52,14 @@ export function authRoutes (services: UserAuthServices): FastifyPluginAsync {
     fastify.post('/auth/register', async (req, reply) => {
       const body = req.body as RegisterBody
 
-      if (!body?.email || !body?.password || !body?.repeatPassword) {
+      if (
+        !body?.name ||
+        !body?.email ||
+        !body?.password ||
+        !body?.repeatPassword
+      ) {
         reply.code(400)
-        return { message: 'email, password and repeatPassword are required' }
+        return { message: 'name, email, password and repeatPassword are required' }
       }
 
       if (body.password !== body.repeatPassword) {
@@ -62,27 +67,26 @@ export function authRoutes (services: UserAuthServices): FastifyPluginAsync {
         return { message: 'Passwords do not match' }
       }
 
-      const existing = await services.getUserByEmailForAuth.execute(body.email)
+      const existing = await services.getUserByEmailForAuth.execute(body.email.trim().toLowerCase())
       if (existing) {
         reply.code(409)
         return { message: 'Email already registered' }
       }
 
-      const fallbackName = body.email.split('@')[0] ?? 'User'
       const hashedPassword = await hash(body.password, 10)
       const created = await services.createUser.execute({
-        name: body.name?.trim() || fallbackName,
-        email: body.email,
+        name: body.name.trim(),
+        email: body.email.trim().toLowerCase(),
         password: hashedPassword,
       })
 
-      const token = createToken(created.id)
+      const token = createToken(created._id.toString())
       reply.code(201)
       return {
         access_token: token,
         token_type: 'Bearer',
         user: {
-          id: created.id,
+          id: created._id.toString(),
           name: created.name,
           email: created.email,
         },

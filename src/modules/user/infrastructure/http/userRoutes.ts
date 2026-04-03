@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify'
-import { GetUserByIdUseCase } from '@user/application/GetUserByIdUseCase.ts'
+import { GetUserByIdUseCase } from '@user/application/UserServices.ts'
 
 type UserRoutesDeps = {
   getUserById: GetUserByIdUseCase;

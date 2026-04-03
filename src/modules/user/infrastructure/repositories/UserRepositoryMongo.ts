@@ -1,78 +1,50 @@
-import type { User, UserWithPassword } from '@user/domain/User.ts'
-import type { UserRepository } from '@user/domain/UserRepository.ts'
-import { ObjectId } from 'mongodb'
+import type { UserEntity } from '@user/domain'
+import type { UserRepository } from '@user/domain'
+import { Collection, ObjectId } from 'mongodb'
 import { getDb } from '@/database/mongoClient.ts'
 
-type MongoUserDoc = {
-  _id: ObjectId;
-  name: string;
-  email: string;
-  password: string;
-  created_at?: string;
-}
+const COLLECTION_NAME = 'users'
 
 export class UserRepositoryMongo implements UserRepository {
-  async list (): Promise<User[]> {
-    const db = getDb()
-    const users = db.collection<MongoUserDoc>('users')
-    const docs = await users.find().toArray()
-    return docs.map((d: MongoUserDoc) => ({
-      id: d._id.toHexString(),
-      name: d.name,
-      email: d.email,
-    }))
+  private getCollection (): Collection<UserEntity> {
+    return getDb().collection<UserEntity>(COLLECTION_NAME)
   }
 
-  async getById (id: string): Promise<User | null> {
+  async list (): Promise<UserEntity[]> {
+    const users = await this.getCollection()
+      .find()
+      .sort({ createdAt: -1 })
+      .toArray()
+
+    return users
+  }
+
+  async getById (id: string): Promise<UserEntity | null> {
     if (!ObjectId.isValid(id)) return null
-    const db = getDb()
-    const users = db.collection<MongoUserDoc>('users')
-    const doc = await users.findOne({ _id: new ObjectId(id) })
-    if (!doc) return null
+    const doc = await this.getCollection()
+      .findOne({ _id: new ObjectId(id) })
 
-    return {
-      id: doc._id.toHexString(),
-      name: doc.name,
-      email: doc.email,
-    }
+    return doc
   }
 
-  async getByEmailForAuth (email: string): Promise<UserWithPassword | null> {
-    const db = getDb()
-    const users = db.collection<MongoUserDoc>('users')
-    const doc = await users.findOne({ email: { $regex: `^${email}$`, $options: 'i' } })
-    if (!doc) return null
+  async getByEmailForAuth (email: string): Promise<UserEntity | null> {
+    const doc = await this.getCollection()
+      .findOne({ email })
 
-    return {
-      id: doc._id.toHexString(),
-      name: doc.name,
-      email: doc.email,
-      password: doc.password,
-    }
+    return doc
   }
 
-  async create (input: { name: string; email: string; password: string }): Promise<User> {
-    const db = getDb()
-    const users = db.collection<{
-      name: string;
-      email: string;
-      password: string;
-      created_at: string;
-    }>('users')
-
-    const doc = {
+  async create (input: { name: string; email: string; password: string }): Promise<UserEntity> {
+    const doc: Omit<UserEntity, '_id'> = {
       name: input.name,
       email: input.email,
       password: input.password,
-      created_at: new Date().toISOString(),
+      createdAt: new Date(),
     }
-
-    const inserted = await users.insertOne(doc)
-
+    const result = await this.getCollection().insertOne(doc as UserEntity)
     return {
-      id: inserted.insertedId.toHexString(),
-      name: doc.name,
-      email: doc.email,
+      _id: result.insertedId.toString(),
+      ...input,
     }
   }
 }
