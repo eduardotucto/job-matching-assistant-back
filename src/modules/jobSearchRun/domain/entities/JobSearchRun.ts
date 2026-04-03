@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb'
 
-export interface JobSearchRun {
+export interface JobSearchRunEntity {
   _id: ObjectId | string
   userId: string
   fullName: string

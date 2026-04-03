@@ -1,16 +1,20 @@
-import type { JobSearchRun, JobMatch, MissingSkill } from '@jobSearchRun/domain/JobSearchRun.ts'
-import type { JobSearchRunRepository } from '@jobSearchRun/domain/JobSearchRunRepository.ts'
+import type {
+  JobSearchRunEntity,
+  JobMatch,
+  MissingSkill,
+  JobSearchRunRepository
+} from '@jobSearchRun/domain'
 import { ObjectId, Collection } from 'mongodb'
 import { getDb } from '@/database/mongoClient.ts'
 
 const COLLECTION_NAME = 'job_search_runs'
 
 export class JobSearchRunRepositoryMongo implements JobSearchRunRepository {
-  private getCollection (): Collection<JobSearchRun> {
-    return getDb().collection<JobSearchRun>(COLLECTION_NAME)
+  private getCollection (): Collection<JobSearchRunEntity> {
+    return getDb().collection<JobSearchRunEntity>(COLLECTION_NAME)
   }
 
-  async listByUserId (userId: string): Promise<JobSearchRun[]> {
+  async listByUserId (userId: string): Promise<JobSearchRunEntity[]> {
     const docs = await this.getCollection()
       .find({ userId })
       .sort({ createdAt: -1 })
@@ -19,7 +23,7 @@ export class JobSearchRunRepositoryMongo implements JobSearchRunRepository {
     return docs
   }
 
-  async update (id: string, jobSearchRun: JobSearchRun): Promise<JobSearchRun> {
+  async update (id: string, jobSearchRun: JobSearchRunEntity): Promise<JobSearchRunEntity> {
     if (!ObjectId.isValid(id)) throw new Error('Invalid ID')
 
     const result = await this.getCollection().findOneAndUpdate(
@@ -50,8 +54,8 @@ export class JobSearchRunRepositoryMongo implements JobSearchRunRepository {
     jobs: JobMatch[];
     topMissingSkills: MissingSkill[];
     createdAt: string;
-  }): Promise<JobSearchRun> {
-    const doc: Omit<JobSearchRun, '_id'> = {
+  }): Promise<JobSearchRunEntity> {
+    const doc: Omit<JobSearchRunEntity, '_id'> = {
       userId: input.userId,
       fullName: input.fullName,
       role: input.role,
@@ -62,7 +66,7 @@ export class JobSearchRunRepositoryMongo implements JobSearchRunRepository {
       createdAt: input.createdAt,
     }
 
-    const result = await this.getCollection().insertOne(doc as JobSearchRun)
+    const result = await this.getCollection().insertOne(doc as JobSearchRunEntity)
     return {
       _id: result.insertedId.toString(),
       ...input,
@@ -74,7 +78,7 @@ export class JobSearchRunRepositoryMongo implements JobSearchRunRepository {
     await this.getCollection().deleteOne({ _id: new ObjectId(id) })
   }
 
-  async getById (id: string): Promise<JobSearchRun | null> {
+  async getById (id: string): Promise<JobSearchRunEntity | null> {
     if (!ObjectId.isValid(id)) return null
     const doc = await this.getCollection().findOne({ _id: new ObjectId(id) })
     if (!doc) return null

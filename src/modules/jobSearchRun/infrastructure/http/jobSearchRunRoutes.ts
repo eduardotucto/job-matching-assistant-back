@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify'
-import type { JobMatch, MissingSkill } from '@jobSearchRun/domain/JobSearchRun.ts'
+import type { JobMatch, MissingSkill } from '@jobSearchRun/domain'
 import {
   ListJobSearchRunsByUserIdUseCase,
   GetJobSearchRunByIdUseCase,
