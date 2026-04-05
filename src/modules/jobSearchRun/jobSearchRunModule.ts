@@ -11,6 +11,7 @@ import {
   DeleteJobSearchRunUseCase,
   ProcessCVAndSearchJobsUseCase
 } from '@jobSearchRun/application'
+import { HimalayasClient } from './infrastructure/external-services/HimalayasJobs.ts'
 
 export function buildJobSearchRunModule (): AppModule {
   return {
@@ -35,7 +36,8 @@ export function buildJobSearchRunModule (): AppModule {
       )
 
       const aIEvaluationClient = new AIEvaluationClient()
-      const processCVAndSearchJobsUseCase = new ProcessCVAndSearchJobsUseCase(aIEvaluationClient, repo)
+      const himalayasClient = new HimalayasClient()
+      const processCVAndSearchJobsUseCase = new ProcessCVAndSearchJobsUseCase(aIEvaluationClient, himalayasClient, repo)
 
       app.register(
         processCVRoutes({

@@ -1,19 +1,33 @@
-export interface JobSearchCriteria {
+export interface JobSearchParameters {
   role: string
+  seniority: string
   skills: string[]
 }
 
-export interface matchedJob { // vamos a ver que devuelve el api
-  id: string
+export interface MatchedJob {
+  guid: string
   title: string
-  company: string
+  excerpt: string
+  companyName: string
+  minSalary: number | null
+  maxSalary: number | null
+  seniority: Seniority[]
+  currency: Currency
+  locationRestrictions: string[]
   description: string
-  skills: string[]
-  salary?: number
-  location: string
-  url: string
+  pubDate: number
+  applicationLink: string
+}
+
+export enum Currency {
+  USD = 'USD',
+}
+export enum Seniority {
+  EntryLevel = 'Entry-level',
+  MidLevel = 'Mid-level',
+  Senior = 'Senior',
 }
 
 export interface JobSearchService {
-  searchJobs(criteria: JobSearchCriteria): Promise<matchedJob[]>
+  searchJobs(criteria: JobSearchParameters): Promise<MatchedJob[] | null>
 }
