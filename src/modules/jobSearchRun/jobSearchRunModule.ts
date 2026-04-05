@@ -1,7 +1,7 @@
 import type { AppModule } from '../moduleContract.ts'
 import { JobSearchRunRepositoryMongo } from './infrastructure/repositories/JobSearchRunRepositoryMongo.ts'
 import { jobSearchRunRoutes } from './infrastructure/http/jobSearchRunRoutes.ts'
-import { processCVRoutes } from './infrastructure/http/ProcessCVRoutes.ts'
+import { processCVRoutes } from './infrastructure/http/processCVRoutes.ts'
 import { AIEvaluationClient } from './infrastructure/external-services/OpenRouter.ts'
 import {
   ListJobSearchRunsByUserIdUseCase,
