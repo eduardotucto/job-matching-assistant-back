@@ -1,5 +1,5 @@
 import { OpenRouter } from '@openrouter/sdk'
-import type { AIEvaluationResult, AIEvaluationService } from '@jobSearchRun/domain'
+import type { AIEvaluationResult, AIEvaluationService, AIRequiredSkillsPerJobResult } from '@jobSearchRun/domain'
 import type { Multipart } from '@fastify/multipart'
 
 const openRouter = new OpenRouter({
@@ -164,6 +164,89 @@ export class AIEvaluationClient implements AIEvaluationService {
       },
     })
 
-    return JSON.parse(completion.choices[0]?.message.content || '{}') as AIEvaluationResult
+    const resp = completion.choices[0]?.message.content || '{}'
+
+    return JSON.parse(resp) as AIEvaluationResult
+  }
+
+  async getRequiredSkillsForJobs (jobDescriptions: { id: string; description: string }[]): Promise<AIRequiredSkillsPerJobResult[] | null> {
+    const promptToGetRequiredSkillsForJobs = `
+      You are an expert technical recruiter and job description parser.
+
+      Your task is to extract ONLY the relevant job skills from each job description.
+
+      INPUT:
+      You will receive an array of objects.
+      Each object contains:
+      - "id": unique identifier
+      - "description": raw job description text (can include HTML)
+
+      GOAL:
+      Return ONLY a valid JSON array.
+      Each output object must contain:
+      - "id": same id from input
+      - "skills": array of extracted skill strings
+
+      STRICT OUTPUT RULES:
+      - Return ONLY raw JSON
+      - Do NOT include markdown
+      - Do NOT include explanations
+      - Do NOT include notes
+      - Do NOT include extra keys
+      - Do NOT wrap the response in an object
+      - Do NOT write anything before or after the JSON array
+
+      EXTRACTION RULES:
+      1. Extract ONLY:
+        - programming languages
+        - frameworks/libraries
+        - databases
+        - cloud/platforms
+        - tools
+        - architectures
+        - APIs
+        - testing methodologies
+        - development practices
+      2. Prefer explicit technologies over generic categories
+      3. Do NOT invent skills that are not clearly present
+      4. Keep the original naming as found or use common readable naming, but DO NOT try to normalize aggressively
+      5. Remove duplicates
+      6. Ignore:
+        - salary
+        - benefits
+        - timezone
+        - shift schedule
+        - degree requirements
+        - years of experience
+        - personality traits
+        - generic responsibilities
+      7. If the description is HTML, ignore tags and extract only from visible text
+
+      OUTPUT FORMAT:
+      [
+        {
+          "id": "job_1",
+          "skills": ["ReactJS", "TypeScript", "Node.JS"]
+        }
+      ]
+
+      Now process the following input:
+      ${JSON.stringify(jobDescriptions)}
+    `
+    const completion = await openRouter.chat.send({
+      chatRequest: {
+        model: 'openrouter/free',
+        messages: [
+          {
+            role: 'user',
+            content: promptToGetRequiredSkillsForJobs
+          }
+        ],
+        stream: false,
+      },
+    })
+
+    const resp = completion.choices[0]?.message.content || '{}'
+    return JSON.parse(resp)
   }
 }
