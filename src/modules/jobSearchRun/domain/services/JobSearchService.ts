@@ -7,13 +7,14 @@ export interface JobSearchParameters {
 export interface MatchedJob {
   guid: string
   title: string
-  excerpt: string
+  excerpt: string // summary of the job description
+  source: string
   companyName: string
   minSalary: number | null
   maxSalary: number | null
   seniority: Seniority[]
   currency: Currency
-  locationRestrictions: string[]
+  locationRestrictions: string | undefined
   description: string
   pubDate: number
   applicationLink: string

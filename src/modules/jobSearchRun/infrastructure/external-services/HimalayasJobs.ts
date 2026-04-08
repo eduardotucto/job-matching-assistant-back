@@ -20,9 +20,10 @@ export class HimalayasClient implements JobSearchService {
 
     const data: HimalayasApiResponse = response.data
 
-    return data.jobs.map((job: MatchedJob) => ({
+    return data.jobs.map(job => ({
       title: job.title,
       excerpt: job.excerpt,
+      source: 'Himalaya',
       companyName: job.companyName,
       // companySlug: job.companySlug,
       // companyLogo: job.companyLogo,
@@ -31,7 +32,7 @@ export class HimalayasClient implements JobSearchService {
       maxSalary: job.maxSalary,
       seniority: job.seniority,
       currency: job.currency,
-      locationRestrictions: job.locationRestrictions,
+      locationRestrictions: job.locationRestrictions ? job.locationRestrictions[0] : 'Remote',
       // timezoneRestrictions: job.timezoneRestrictions,
       // categories: job.categories,
       // parentCategories: job.parentCategories,
