@@ -1,4 +1,6 @@
+import type { Multipart } from '@fastify/multipart'
+
 export class ProcessCVDto {
-  cvText!: string
   userId!: string
+  cvFile!: Multipart
 }

@@ -226,7 +226,7 @@ export class AIEvaluationClient implements AIEvaluationService {
       [
         {
           "id": "job_1",
-          "skills": ["ReactJS", "TypeScript", "Node.JS"]
+          "requiredSkills": ["ReactJS", "TypeScript", "Node.JS"]
         }
       ]
 

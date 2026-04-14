@@ -5,27 +5,26 @@ type ProcessCVRoutesDeps = {
   processCVAndSearchJobsUseCase: ProcessCVAndSearchJobsUseCase
 }
 
-type ProcessCVBody = {
-  cvText: string
-}
-
 export function processCVRoutes (deps: ProcessCVRoutesDeps): FastifyPluginAsync {
   return async (fastify) => {
     fastify.post('/process-cv', async (req, reply) => {
-      const userId = req.authUserId as string
-      const body = req.body as ProcessCVBody
+      try {
+        const cvFile = await req.file()
+        const userId = req.authUserId as string
 
-      const result = await deps.processCVAndSearchJobsUseCase.execute({
-        userId,
-        cvText: body.cvText
-      })
+        if (!cvFile) throw new Error('CV file is required')
 
-      reply.code(201)
-      return result
-    })
-    fastify.get('/process-cv', async (req, reply) => {
-      reply.code(200)
-      return { message: 'Endpoint to process CVs' }
+        const result = await deps.processCVAndSearchJobsUseCase.execute({
+          userId,
+          cvFile
+        })
+
+        reply.code(201)
+        return result
+      } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : 'Failed to process CV'
+        return { error: errorMessage }
+      }
     })
   }
 }
