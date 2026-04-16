@@ -1,7 +1,5 @@
 import type {
   JobSearchRunEntity,
-  JobMatch,
-  MissingSkill,
   JobSearchRunRepository
 } from '@jobSearchRun/domain'
 import { ObjectId, Collection } from 'mongodb'
@@ -45,28 +43,11 @@ export class JobSearchRunRepositoryMongo implements JobSearchRunRepository {
     return result
   }
 
-  async create (input: {
-    userId: string;
-    fullName: string;
-    role: string;
-    experience: string;
-    education: string;
-    jobs: JobMatch[];
-    topMissingSkills: MissingSkill[];
-    createdAt: string;
-  }): Promise<JobSearchRunEntity> {
-    const doc: Omit<JobSearchRunEntity, '_id'> = {
-      userId: input.userId,
-      fullName: input.fullName,
-      role: input.role,
-      experience: input.experience,
-      education: input.education,
-      jobs: input.jobs,
-      topMissingSkills: input.topMissingSkills,
-      createdAt: input.createdAt,
-    }
-
-    const result = await this.getCollection().insertOne(doc as JobSearchRunEntity)
+  async create (input: Omit<JobSearchRunEntity, '_id'>): Promise<JobSearchRunEntity> {
+    const result = await this.getCollection().insertOne({
+      ...input,
+      userId: new ObjectId(input.userId),
+    } as JobSearchRunEntity)
     return {
       _id: result.insertedId.toString(),
       ...input,

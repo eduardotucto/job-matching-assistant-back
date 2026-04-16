@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb'
 
 export interface JobSearchRunEntity {
   _id: ObjectId | string
-  userId: string
+  userId: ObjectId | string
   fullName: string
   role: string
   experienceSummary: string
@@ -14,7 +14,7 @@ export interface JobSearchRunEntity {
   metadata: CVMetadata
   jobs: JobMatch[]
   topMissingSkills: MissingSkill[]
-  createdAt: string
+  createdAt: Date
 }
 
 export interface CVEducation {

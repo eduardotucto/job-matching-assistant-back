@@ -179,56 +179,19 @@ export class ProcessCVAndSearchJobsUseCase {
 
   async execute (request: ProcessCVDto): Promise<JobSearchRunEntity | null> {
     const { cvFile } = request
-    console.log('[ProcessCV] Starting CV processing', { userId: request.userId })
 
-    // Step 1: Evaluate CV
-    console.log('[ProcessCV] Step 1: Evaluating CV...')
     const evaluation = await this.aiEvaluationService.evaluateCv(cvFile)
     if (!evaluation) throw new Error('Failed to evaluate CV')
-    console.log('[ProcessCV] Step 1 OK: CV evaluated', {
-      role: evaluation.role,
-      seniority: evaluation.metadata?.seniorityLevel,
-      skillsCount: evaluation.skills?.length,
-      skills: evaluation.skills
-    })
 
-    // Step 2: Search jobs
-    console.log('[ProcessCV] Step 2: Searching jobs...', {
-      role: evaluation.role,
-      seniority: evaluation.metadata.seniorityLevel,
-      skills: evaluation.skills
-    })
     const jobs = await this.jobSearchService.searchJobs({
       role: evaluation.role,
       seniority: evaluation.metadata.seniorityLevel,
       skills: evaluation.skills
     })
     if (!jobs) throw new Error('Failed to search for jobs')
-    console.log('[ProcessCV] Step 2 OK: Jobs found', {
-      jobsCount: jobs.length,
-      jobs: jobs.map(j => ({ guid: j.guid, title: j.title, company: j.companyName }))
-    })
 
-    // Step 3: Get required skills for each job
-    const jobDescriptions = jobs.map(job => ({ id: job.guid, description: job.description }))
-    console.log('[ProcessCV] Step 3: Getting required skills for jobs...', { jobsCount: jobDescriptions.length })
-    const jobsWithRequiredSkills = await this.aiEvaluationService.getRequiredSkillsForJobs(jobDescriptions)
-    if (!jobsWithRequiredSkills) throw new Error('Failed to get required skills for jobs')
-    console.log('[ProcessCV] Step 3 OK: Required skills fetched', {
-      jobsCount: jobsWithRequiredSkills.length,
-      preview: jobsWithRequiredSkills.map(j => ({ id: j.id, requiredSkillsCount: j.requiredSkills?.length, requiredSkills: j.requiredSkills }))
-    })
-
-    // Step 4: Normalize and match skills
-    console.log('[ProcessCV] Step 4: Normalizing and matching skills...')
     const jobsWithSkillsMatched = jobs.map(job => {
-      const jobSkills = jobsWithRequiredSkills.find(j => j.id === job.guid)
-      const normalized = jobSkills ? this.normalizeSkills(jobSkills.requiredSkills) : []
-      console.log(`[ProcessCV]   Job "${job.title}" (${job.guid}):`, {
-        rawSkillsCount: jobSkills?.requiredSkills?.length ?? 0,
-        normalizedSkillsCount: normalized.length,
-        normalizedSkills: normalized
-      })
+      const normalized = this.normalizeSkills(job.skills)
       return { ...job, requiredSkills: normalized }
     })
 
@@ -236,23 +199,11 @@ export class ProcessCVAndSearchJobsUseCase {
       ...evaluation,
       skills: this.normalizeSkills(evaluation.skills)
     }
-    console.log('[ProcessCV] Step 4 OK: Normalized CV skills', {
-      original: evaluation.skills,
-      normalized: evaluationWithNormalizedSkills.skills
-    })
 
-    // Step 5: Build job search run with match scores
-    console.log('[ProcessCV] Step 5: Building job search run entity...')
     const mappedJobs = jobsWithSkillsMatched.map(job => {
       const matchedSkills = job.requiredSkills.filter(skill => evaluationWithNormalizedSkills.skills.includes(skill))
       const missingSkills = job.requiredSkills.filter(skill => !evaluationWithNormalizedSkills.skills.includes(skill))
       const score = job.requiredSkills.length > 0 ? matchedSkills.length / job.requiredSkills.length : 0
-      console.log(`[ProcessCV]   Matching "${job.title}":`, {
-        requiredSkills: job.requiredSkills,
-        matchedSkills,
-        missingSkills,
-        score
-      })
       return {
         jobId: job.guid,
         title: job.title,
@@ -271,20 +222,11 @@ export class ProcessCVAndSearchJobsUseCase {
       ...evaluationWithNormalizedSkills,
       userId: request.userId,
       jobs: mappedJobs,
-      createdAt: new Date().toISOString()
+      topMissingSkills: [],
+      createdAt: new Date()
     }
-    console.log('[ProcessCV] Step 5 OK: Job search run built', {
-      userId: jobSearchRun.userId,
-      totalJobs: jobSearchRun.jobs.length,
-      createdAt: jobSearchRun.createdAt
-    })
 
-    // Step 6: Persist
-    console.log('[ProcessCV] Step 6: Saving job search run to repository...')
     const newJobSearchRun = await this.jobSearchRunRepository.create(jobSearchRun)
-    console.log('[ProcessCV] Step 6 OK: Saved', { id: newJobSearchRun?._id })
-
-    console.log('[ProcessCV] Done ✓')
     return newJobSearchRun
   }
 
@@ -297,9 +239,7 @@ export class ProcessCVAndSearchJobsUseCase {
   }
 
   private normalizeSkill (skill: string): string | null {
-    console.log('skill', skill)
     const key = this.createSkillKey(skill)
-    console.log('key', key)
 
     if (!key) return null
 
