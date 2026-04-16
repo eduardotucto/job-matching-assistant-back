@@ -16,6 +16,7 @@ export interface MatchedJob {
   currency: Currency
   locationRestrictions: string | undefined
   description: string
+  skills: string[]
   pubDate: number
   applicationLink: string
 }
