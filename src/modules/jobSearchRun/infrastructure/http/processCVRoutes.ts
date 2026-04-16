@@ -23,6 +23,7 @@ export function processCVRoutes (deps: ProcessCVRoutesDeps): FastifyPluginAsync 
         return result
       } catch (e) {
         const errorMessage = e instanceof Error ? e.message : 'Failed to process CV'
+        console.log('[ProcessCV] Error processing CV:', { error: errorMessage })
         return { error: errorMessage }
       }
     })
