@@ -1,10 +1,12 @@
 import Fastify from 'fastify'
 import type { FastifyInstance } from 'fastify'
 import { verifyToken } from '@/security/tokenService.ts'
+import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
 
 export function buildApp (): FastifyInstance {
   const app = Fastify({ logger: true })
+  app.register(cors, { origin: true })
   app.register(multipart)
 
   app.get('/health', async () => {
