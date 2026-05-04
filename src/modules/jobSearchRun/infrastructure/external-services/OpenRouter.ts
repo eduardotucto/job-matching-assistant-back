@@ -3,7 +3,7 @@ import type { AIEvaluationResult, AIEvaluationService } from '@jobSearchRun/doma
 import type { Multipart } from '@fastify/multipart'
 
 const openRouter = new OpenRouter({
-  apiKey: import.meta.env.VITE_OPENROUTER_API_KEY
+  apiKey: Bun.env.OPENROUTER_API_KEY
 })
 
 const promptTemplate = `

@@ -4,7 +4,7 @@ type JwtPayload = {
   sub: string;
 }
 
-const SECRET = import.meta.env.VITE_JWT_SECRET
+const SECRET = Bun.env.JWT_SECRET
 
 export function createToken (userId: string): string {
   if (!SECRET) throw new Error('JWT secret is not defined')

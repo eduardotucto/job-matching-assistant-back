@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb'
 
-const MONGO_URI = import.meta.env.VITE_MONGO_URI ?? ''
-const MONGO_DB_NAME = import.meta.env.VITE_MONGO_DB_NAME ?? ''
+const MONGO_URI = Bun.env.MONGO_URI ?? ''
+const MONGO_DB_NAME = Bun.env.MONGO_DB_NAME ?? ''
 
 const client = new MongoClient(MONGO_URI)
 let connected = false
