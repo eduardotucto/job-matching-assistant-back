@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import { compare, hash } from 'bcrypt'
 import { createToken } from '@/security/tokenService.ts'
 import type { UserAuthServices } from '@user/userModule.ts'
+import { Errors } from '@/errors'
 
 type LoginBody = {
   email: string;
@@ -52,26 +53,16 @@ export function authRoutes (services: UserAuthServices): FastifyPluginAsync {
     fastify.post('/auth/register', async (req, reply) => {
       const body = req.body as RegisterBody
 
-      if (
-        !body?.name ||
-        !body?.email ||
-        !body?.password ||
-        !body?.repeatPassword
-      ) {
-        reply.code(400)
-        return { message: 'name, email, password and repeatPassword are required' }
+      if (!body?.name || !body?.email || !body?.password || !body?.repeatPassword) {
+        throw Errors.MISSING_FIELDS()
       }
 
       if (body.password !== body.repeatPassword) {
-        reply.code(400)
-        return { message: 'Passwords do not match' }
+        throw Errors.PASSWORDS_MISMATCH()
       }
 
       const existing = await services.getUserByEmailForAuth.execute(body.email.trim().toLowerCase())
-      if (existing) {
-        reply.code(409)
-        return { message: 'Email already registered' }
-      }
+      if (existing) throw Errors.EMAIL_TAKEN()
 
       const hashedPassword = await hash(body.password, 10)
       const created = await services.createUser.execute({
