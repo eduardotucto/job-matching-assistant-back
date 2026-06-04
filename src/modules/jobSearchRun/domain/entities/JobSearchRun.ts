@@ -13,7 +13,6 @@ export interface JobSearchRunEntity {
   summary: string
   metadata: CVMetadata
   jobs: JobMatch[]
-  topMissingSkills: MissingSkill[]
   createdAt: Date
 }
 
@@ -55,9 +54,4 @@ export interface JobMatch {
     questions: string[]
     focusAreas: string[]
   }
-}
-
-export interface MissingSkill { // para cuando tenga mas créditos en loveable xd
-  skill: string
-  count: number
 }

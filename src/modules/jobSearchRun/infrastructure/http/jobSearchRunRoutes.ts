@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify'
-import type { JobMatch, MissingSkill } from '@jobSearchRun/domain'
+import type { JobMatch } from '@jobSearchRun/domain'
 import {
   ListJobSearchRunsByUserIdUseCase,
   GetJobSearchRunByIdUseCase,
@@ -22,7 +22,6 @@ type JobSearchRunCreateBody = {
   experience: string
   education: string
   jobs: JobMatch[]
-  topMissingSkills: MissingSkill[]
 }
 
 type JobSearchRunUpdateBody = {
@@ -31,7 +30,6 @@ type JobSearchRunUpdateBody = {
   experience?: string
   education?: string
   jobs?: JobMatch[]
-  topMissingSkills?: MissingSkill[]
 }
 
 export function jobSearchRunRoutes (deps: JobSearchRunRoutesDeps): FastifyPluginAsync {

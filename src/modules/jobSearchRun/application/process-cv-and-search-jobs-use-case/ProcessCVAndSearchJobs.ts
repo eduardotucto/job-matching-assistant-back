@@ -222,7 +222,6 @@ export class ProcessCVAndSearchJobsUseCase {
       ...evaluationWithNormalizedSkills,
       userId: request.userId,
       jobs: mappedJobs,
-      topMissingSkills: [],
       createdAt: new Date()
     }
 
