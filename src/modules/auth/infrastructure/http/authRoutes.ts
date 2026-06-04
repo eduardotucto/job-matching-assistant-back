@@ -22,20 +22,17 @@ export function authRoutes (services: UserAuthServices): FastifyPluginAsync {
       const body = req.body as LoginBody
 
       if (!body?.email || !body?.password) {
-        reply.code(400)
-        return { message: 'email and password are required' }
+        throw Errors.MISSING_FIELDS()
       }
 
       const user = await services.getUserByEmailForAuth.execute(body.email.trim().toLowerCase())
       if (!user) {
-        reply.code(401)
-        return { message: 'Invalid credentials' }
+        throw Errors.USER_NOT_FOUND()
       }
 
       const validPassword = await compare(body.password, user.password)
       if (!validPassword) {
-        reply.code(401)
-        return { message: 'Invalid credentials' }
+        throw Errors.INVALID_CREDENTIALS()
       }
 
       const token = createToken(user._id.toString())
