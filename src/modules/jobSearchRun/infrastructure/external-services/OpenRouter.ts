@@ -1,6 +1,7 @@
 import { OpenRouter } from '@openrouter/sdk'
 import type { AIEvaluationResult, AIEvaluationService } from '@jobSearchRun/domain'
 import type { Multipart } from '@fastify/multipart'
+import { PDFParse } from 'pdf-parse'
 
 const openRouter = new OpenRouter({
   apiKey: Bun.env.OPENROUTER_API_KEY
@@ -137,7 +138,18 @@ export class AIEvaluationClient implements AIEvaluationService {
     if (!(cvFile && 'file' in cvFile)) throw new Error('CV file is required')
 
     const pdfBuffer = await cvFile.toBuffer()
-    const base64Pdf = pdfBuffer.toString('base64')
+
+    // Extraer texto del PDF
+    const parser = new PDFParse({ data: pdfBuffer })
+    const result = await parser.getText()
+    const parsed = result.text
+    const rawText = (parsed || '').replace(/\s+/g, ' ').trim()
+
+    // evitar prompts demasiado largos -> recortar si es necesario
+    const maxChars = 24000
+    const cvText = rawText.length > maxChars ? rawText.slice(0, maxChars) : rawText
+
+    const prompt = promptTemplate.replace('{{CV_TEXT}}', cvText)
 
     const completion = await openRouter.chat.send({
       chatRequest: {
@@ -148,14 +160,7 @@ export class AIEvaluationClient implements AIEvaluationService {
             content: [
               {
                 type: 'text',
-                text: promptTemplate
-              },
-              {
-                type: 'file',
-                file: {
-                  filename: 'cv.pdf',
-                  fileData: `data:application/pdf;base64,${base64Pdf}`
-                }
+                text: prompt
               }
             ]
           }
@@ -165,43 +170,6 @@ export class AIEvaluationClient implements AIEvaluationService {
     })
 
     const resp = completion.choices[0]?.message.content || '{}'
-
     return JSON.parse(resp) as AIEvaluationResult
-
-    // return {
-    //   fullName: 'Eduardo Tucto Runco',
-    //   role: 'Full Stack Developer',
-    //   experienceSummary: '3 years in full‑stack web development with JavaScript, TypeScript, React, Vue, Node, Nestjs, and AWS Lambda, focusing on scalable architectures, database design, and performance optimization',
-    //   yearsOfExperience: 3,
-    //   education: [
-    //     {
-    //       degree: 'Ingeniería de Sistemas',
-    //       institution: 'Universidad Nacional Hermilio Valdizán',
-    //       year: '2021'
-    //     }
-    //   ],
-    //   skills: [
-    //     'JavaScript', 'TypeScript', 'React', 'Vue', 'Node.js', 'NestJS', 'Next.js', 'GraphQL', 'SQL Server',
-    //     'MySQL', 'PostgreSQL', 'AWS Lambda', 'EventBridge', 'Serverless', 'JWT', 'REST APIs', 'Tailwind CSS',
-    //     'HTML', 'CSS', 'Git', 'Figma', 'Retool', 'FastAPI', 'Docker', 'CI/CD', 'Microservices', 'Data Modeling',
-    //     'Performance Optimization', 'Problem Solving', 'Team Collaboration', 'Fast Learning'
-    //   ],
-    //   languages: [
-    //     {
-    //       name: 'Spanish',
-    //       level: 'Native'
-    //     },
-    //     {
-    //       name: 'English',
-    //       level: 'Intermediate'
-    //     }
-    //   ],
-    //   summary: 'Eduardo Tucto Runco is a Full Stack Developer with over three years of experience building robust web applications using modern JavaScript frameworks and cloud services. He has a proven track record in optimizing performance, designing serverless architectures, and improving deployment workflows. Eduardo excels in cross‑functional collaboration, rapid learning, and delivering high‑quality solutions that meet business goals.',
-    //   metadata: {
-    //     seniorityLevel: 'mid',
-    //     inferredRoleConfidence: 'high',
-    //     hasClearExperienceDates: true
-    //   }
-    // }
   }
 }
