@@ -14,7 +14,7 @@ export class JobSearchRunRepositoryMongo implements JobSearchRunRepository {
 
   async listByUserId (userId: string): Promise<JobSearchRunEntity[]> {
     const docs = await this.getCollection()
-      .find({ userId })
+      .find({ userId: new ObjectId(userId) })
       .sort({ createdAt: -1 })
       .toArray()
 
