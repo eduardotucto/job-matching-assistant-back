@@ -1,6 +1,6 @@
 import { OpenRouter } from '@openrouter/sdk'
 import type { AIEvaluationResult, AIEvaluationService } from '@jobSearchRun/domain'
-import type { Multipart } from '@fastify/multipart'
+import type { MultipartFile } from '@fastify/multipart'
 import { PDFParse } from 'pdf-parse'
 
 const openRouter = new OpenRouter({
@@ -134,7 +134,7 @@ const promptTemplate = `
 `
 
 export class AIEvaluationClient implements AIEvaluationService {
-  async evaluateCv (cvFile: Multipart): Promise<AIEvaluationResult | null> {
+  async evaluateCv (cvFile: MultipartFile): Promise<AIEvaluationResult | null> {
     if (!(cvFile && 'file' in cvFile)) throw new Error('CV file is required')
 
     const pdfBuffer = await cvFile.toBuffer()

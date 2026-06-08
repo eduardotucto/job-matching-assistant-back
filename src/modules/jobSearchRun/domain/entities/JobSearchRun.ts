@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb'
 export interface JobSearchRunEntity {
   _id: ObjectId | string
   userId: ObjectId | string
+  fileName: string
   fullName: string
   role: string
   experienceSummary: string

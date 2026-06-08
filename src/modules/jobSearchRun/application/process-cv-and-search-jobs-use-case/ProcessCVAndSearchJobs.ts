@@ -180,6 +180,10 @@ export class ProcessCVAndSearchJobsUseCase {
   async execute (request: ProcessCVDto): Promise<JobSearchRunEntity | null> {
     const { cvFile } = request
 
+    if (cvFile.mimetype !== 'application/pdf') {
+      throw new Error('Invalid CV file type. Only PDF files are accepted.')
+    }
+
     const evaluation = await this.aiEvaluationService.evaluateCv(cvFile)
     if (!evaluation) throw new Error('Failed to evaluate CV')
 
@@ -221,6 +225,7 @@ export class ProcessCVAndSearchJobsUseCase {
     const jobSearchRun: Omit<JobSearchRunEntity, '_id'> = {
       ...evaluationWithNormalizedSkills,
       userId: request.userId,
+      fileName: cvFile.filename,
       jobs: mappedJobs,
       createdAt: new Date()
     }
