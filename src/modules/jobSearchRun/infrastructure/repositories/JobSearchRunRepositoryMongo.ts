@@ -27,19 +27,12 @@ export class JobSearchRunRepositoryMongo implements JobSearchRunRepository {
     const result = await this.getCollection().findOneAndUpdate(
       { _id: new ObjectId(id) },
       {
-        $set: {
-          full_name: jobSearchRun.fullName,
-          role: jobSearchRun.role,
-          experience: jobSearchRun.experience,
-          education: jobSearchRun.education,
-          jobs: jobSearchRun.jobs,
-          top_missing_skills: jobSearchRun.topMissingSkills,
-        },
+        $set: jobSearchRun,
       },
       { returnDocument: 'after' }
     )
 
-    if (!result) throw new Error('JobSearchRun not found')
+    if (!result) throw new Error()
     return result
   }
 

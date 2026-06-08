@@ -49,7 +49,7 @@ export interface JobMatch {
   }
   application: {
     applied: boolean
-    appliedAt: string | null
+    appliedAt: Date | null
   }
   interviewPrep?: { // para cuando tenga mas créditos en loveable xd
     questions: string[]

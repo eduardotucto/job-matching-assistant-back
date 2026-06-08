@@ -7,4 +7,6 @@ export const Errors = {
   UNAUTHORIZED: () => new AppError({ statusCode: 401, code: 'UNAUTHORIZED' }),
   USER_NOT_FOUND: () => new AppError({ statusCode: 404, code: 'USER_NOT_FOUND' }),
   INVALID_CREDENTIALS: () => new AppError({ statusCode: 401, code: 'INVALID_CREDENTIALS' }),
+
+  ELEMENT_NOT_FOUND: () => new AppError({ statusCode: 404, code: 'ELEMENT_NOT_FOUND' }),
 }

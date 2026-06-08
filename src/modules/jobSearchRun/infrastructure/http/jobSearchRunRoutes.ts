@@ -7,6 +7,7 @@ import {
   UpdateJobSearchRunUseCase,
   DeleteJobSearchRunUseCase
 } from '@jobSearchRun/application'
+import { Errors } from '@/errors'
 
 type JobSearchRunRoutesDeps = {
   listJobSearchRunsByUserId: ListJobSearchRunsByUserIdUseCase
@@ -22,14 +23,6 @@ type JobSearchRunCreateBody = {
   experience: string
   education: string
   jobs: JobMatch[]
-}
-
-type JobSearchRunUpdateBody = {
-  fullName?: string
-  role?: string
-  experience?: string
-  education?: string
-  jobs?: JobMatch[]
 }
 
 export function jobSearchRunRoutes (deps: JobSearchRunRoutesDeps): FastifyPluginAsync {
@@ -77,35 +70,26 @@ export function jobSearchRunRoutes (deps: JobSearchRunRoutesDeps): FastifyPlugin
       return jobSearchRun
     })
 
-    fastify.patch('/job-search-runs/:id', async (req, reply) => {
+    fastify.patch('/job-search-runs/:id/application', async (req) => {
       const userId = req.authUserId as string
-
       const { id } = req.params as { id: string }
+      const { jobId, applied } = req.body as { jobId: string; applied: boolean }
+
       const jobSearchRun = await deps.getJobSearchRunById.execute(id)
 
-      if (!jobSearchRun) {
-        reply.code(404)
-        return { message: 'JobSearchRun not found' }
+      if (!jobSearchRun || jobSearchRun.userId.toString() !== userId) {
+        throw Errors.ELEMENT_NOT_FOUND()
       }
 
-      if (jobSearchRun.userId !== userId) {
-        reply.code(403)
-        return { message: 'Forbidden' }
-      }
+      const jobIndex = jobSearchRun.jobs.findIndex(job => job.jobId === jobId)
+      if (jobIndex === -1) throw Errors.ELEMENT_NOT_FOUND()
 
-      const body = req.body as JobSearchRunUpdateBody
+      jobSearchRun.jobs[jobIndex]!.application!.applied = applied
+      jobSearchRun.jobs[jobIndex]!.application!.appliedAt = applied ? new Date() : null
 
-      const updated = await deps.updateJobSearchRun.execute(id, {
-        ...jobSearchRun,
-        fullName: body.fullName ?? jobSearchRun.fullName,
-        role: body.role ?? jobSearchRun.role,
-        experience: body.experience ?? jobSearchRun.experience,
-        education: body.education ?? jobSearchRun.education,
-        jobs: body.jobs ?? jobSearchRun.jobs,
-        topMissingSkills: body.topMissingSkills ?? jobSearchRun.topMissingSkills,
-      })
+      const updatedEntity = await deps.updateJobSearchRun.execute(id, jobSearchRun)
 
-      return updated
+      return updatedEntity
     })
 
     fastify.delete('/job-search-runs/:id', async (req, reply) => {
