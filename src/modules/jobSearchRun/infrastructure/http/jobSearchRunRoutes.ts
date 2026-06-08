@@ -34,22 +34,14 @@ type JobSearchRunUpdateBody = {
 
 export function jobSearchRunRoutes (deps: JobSearchRunRoutesDeps): FastifyPluginAsync {
   return async (fastify) => {
-    fastify.get('/job-search-runs/me', async (req, reply) => {
-      const userId = req.authUserId
-      if (!userId) {
-        reply.code(401)
-        return { message: 'Unauthorized' }
-      }
+    fastify.get('/job-search-runs/me', async (req) => {
+      const userId = req.authUserId as string
 
       return deps.listJobSearchRunsByUserId.execute(userId)
     })
 
     fastify.post('/job-search-runs/me', async (req, reply) => {
-      const userId = req.authUserId
-      if (!userId) {
-        reply.code(401)
-        return { message: 'Unauthorized' }
-      }
+      const userId = req.authUserId as string
 
       const body = req.body as JobSearchRunCreateBody
 
@@ -68,6 +60,7 @@ export function jobSearchRunRoutes (deps: JobSearchRunRoutesDeps): FastifyPlugin
     })
 
     fastify.get('/job-search-runs/:id', async (req, reply) => {
+      const userId = req.authUserId as string
       const { id } = req.params as { id: string }
       const jobSearchRun = await deps.getJobSearchRunById.execute(id)
 
@@ -76,7 +69,7 @@ export function jobSearchRunRoutes (deps: JobSearchRunRoutesDeps): FastifyPlugin
         return { message: 'JobSearchRun not found' }
       }
 
-      if (jobSearchRun.userId !== req.authUserId) {
+      if (jobSearchRun.userId !== userId) {
         reply.code(403)
         return { message: 'Forbidden' }
       }
@@ -85,11 +78,7 @@ export function jobSearchRunRoutes (deps: JobSearchRunRoutesDeps): FastifyPlugin
     })
 
     fastify.patch('/job-search-runs/:id', async (req, reply) => {
-      const userId = req.authUserId
-      if (!userId) {
-        reply.code(401)
-        return { message: 'Unauthorized' }
-      }
+      const userId = req.authUserId as string
 
       const { id } = req.params as { id: string }
       const jobSearchRun = await deps.getJobSearchRunById.execute(id)
@@ -120,11 +109,7 @@ export function jobSearchRunRoutes (deps: JobSearchRunRoutesDeps): FastifyPlugin
     })
 
     fastify.delete('/job-search-runs/:id', async (req, reply) => {
-      const userId = req.authUserId
-      if (!userId) {
-        reply.code(401)
-        return { message: 'Unauthorized' }
-      }
+      const userId = req.authUserId as string
 
       const { id } = req.params as { id: string }
       const jobSearchRun = await deps.getJobSearchRunById.execute(id)
