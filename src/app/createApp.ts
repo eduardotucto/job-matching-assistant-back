@@ -6,7 +6,10 @@ import multipart from '@fastify/multipart'
 
 export function buildApp (): FastifyInstance {
   const app = Fastify({ logger: true })
-  app.register(cors, { origin: true })
+  app.register(cors, {
+    origin: true,
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE', 'OPTIONS']
+  })
   app.register(multipart)
 
   app.get('/health', async () => {
